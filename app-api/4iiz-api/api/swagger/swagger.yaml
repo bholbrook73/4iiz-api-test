@@ -59,7 +59,7 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/ClimbResponse'
+            $ref: '#/definitions/ClimbDays'
         default:
           description: Error
           schema:
@@ -67,11 +67,21 @@ paths:
   /swagger:
     x-swagger-pipe: swagger_raw
 definitions:
-  ClimbsResponse:
+  ClimbResponse:
     properties:
-      id:
+      _id:
         type: string
       timestamp:
+        type: string
+      h:
+        type: number
+      u:
+        type: number
+      d:
+        type: number
+      f:
+        type: number
+      result:
         type: string
   ClimbRequest:
     required:
@@ -88,21 +98,33 @@ definitions:
         type: number
       f:
         type: number
-  ClimbResponse:
+  ClimbsResponse:
     properties:
       results:
         type: array
         items:
-          $ref: '#/definitions/ClimbDayLog'
-  ClimbDayLog:
+          $ref: '#/definitions/ClimbResponse'
+  ClimbDays:
     properties:
-      h:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/ClimbDay'
+  ClimbDay:
+    properties:
+      _id:
+        type: string
+      climb:
+        type: string
+      day:
         type: number
-      u:
+      initialHeight:
         type: number
-      d:
+      distanceClimbed:
         type: number
-      f:
+      heightAfterClimbing:
+        type: number
+      heightAfterSliding:
         type: number
       result:
         type: string
