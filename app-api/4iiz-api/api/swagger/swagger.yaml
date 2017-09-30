@@ -14,7 +14,8 @@ paths:
   /climbs:
     x-swagger-router-controller: climbs
     get:
-      description: Returns list of Climbs
+      description: >
+        <p>Provides a list of all climbs requested.</p>
       operationId: getClimbs
       responses:
         200:
@@ -26,7 +27,17 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
     post:
-      description: Calculates a new Snail climb and records the transaction
+      description: >
+        <p>Calculates a new snail climb based on the following snail problem:</p>
+        <p>A snail is at the bottom of a 6-foot well and wants to climb to the top. The snail can climb 3 feet while the
+        sun is up, but slides down 1 foot at night while sleeping. The snail has a fatigue factor of 10%, which means
+        that on each successive day the snail climbs 10% * 3 = 0.3 feet less than it did the previous day. (The distance
+        lost to fatigue is always 10% of the first day's climbing distance.) On what day does the snail leave the well,
+        i.e., what is the first day during which the snail's height exceeds 6 feet? (A day consists of a period of
+        sunlight followed by a period of darkness.)</p>
+        <p>Depending on the parameters of the problem, the snail will eventually either leave the well or slide back to
+        the bottom of the well. (In other words, the snail's height will exceed the height of the well or become
+        negative.) This call will find out which happens first and on what day.</p>
       operationId: newClimb
       parameters:
         - name: climb
@@ -45,7 +56,14 @@ paths:
   /climbs/{climbId}:
     x-swagger-router-controller: climbs.climb
     get:
-      description: Get results of a specific climb
+      description: >
+        <p>Provides a list of all days for the requested climb proving:</p>
+        <p>Each web service call should contain four integers H, U, D, and F.  All four numbers will be between 1 and
+        100, inclusive. H is the height of the well in feet, U is the distance in feet that the snail can climb during
+        the day, D is the distance in feet that the snail slides down during the night, and F is the fatigue factor
+        expressed as a percentage. The snail never climbs a negative distance. If the fatigue factor drops the snail's
+        climbing distance below zero, the snail does not climb at all that day. Regardless of how far the snail climbed,
+        it always slides D feet at night.</p>
       operationId: getClimb
       produces:
         - application/json
@@ -72,7 +90,7 @@ definitions:
       _id:
         type: string
       timestamp:
-        type: string
+        type: number
       h:
         type: number
       u:
