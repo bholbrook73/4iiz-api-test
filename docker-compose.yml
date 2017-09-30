@@ -4,15 +4,23 @@ services:
 
     mongo:
         image: mongo:3.0
+        ports:
+            - "27018:27017"
 
     mongo-admin:
         image: mongo-express:latest
+        depends_on:
+            - mongo
         ports:
-         - "8081:8081"
+            - "8081:8081"
 
     api:
         build:
             context: ./app-api
+        depends_on:
+            - mongo
+        links:
+            - mongo
         ports:
-         - "8080:8080"
+            - "8080:8080"
 

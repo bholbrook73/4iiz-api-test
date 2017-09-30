@@ -1,6 +1,6 @@
 'use strict';
 
-const uuid = require('uuid/v4');
+const Mongo = require("./mongo");
 
 /*
 
@@ -20,7 +20,11 @@ function doClimb( Snail, days=[] )
 {
     const day = {
 
-        id: uuid(),
+        _id: new Mongo.ObjectId(),
+
+        Snail: Snail,
+
+        timestamp: Date.now(),
 
         day: days.length + 1,
 
@@ -29,7 +33,7 @@ function doClimb( Snail, days=[] )
         /**
          * @var result enum <Success,Failed>
          */
-        result: false,
+        result: null,
 
         track: function(Snail){
             this.moves.push(Snail.log());
@@ -69,7 +73,7 @@ function init( wellHeight, initialClimbDistance, nightlySlideDistance, fatigue )
 {
     const snail = {
 
-        id: uuid(),
+        _id: new Mongo.ObjectId(),
 
         /**
          * @var position number
@@ -154,6 +158,89 @@ function init( wellHeight, initialClimbDistance, nightlySlideDistance, fatigue )
 
 }
 
+function log(days) {
+
+    let lastDay = days[ days.length - 1];
+
+    return Mongo.connect().then((db) => {
+
+        const results = {
+            climb: {
+
+                _id: lastDay.Snail._id,
+                timestamp: lastDay.timestamp,
+                h: lastDay.Snail._config.target,
+                u: lastDay.Snail._config.initialMoves,
+                d: lastDay.Snail._config.nightlySlide,
+                f: lastDay.Snail._config.fatigue,
+                result: `${lastDay.result} in ${lastDay.day} days`
+
+            }
+        };
+
+        db.collection('climbs').insertOne(results.climb).then(()=>{
+
+            days.forEach(day=>{
+
+                let heightAfterSliding = null;
+
+                // initial position
+                let firstMove = day.moves.shift();
+                let initialHeight = firstMove.position;
+
+                // after climb
+                let afterClimb = day.moves.shift();
+                let distanceClimbed = afterClimb.position - initialHeight;
+                let heightAfterClimbing = afterClimb.position;
+
+                // after slide
+                if(day.moves.length){
+                    let afterSlide = day.moves.shift();
+                    heightAfterSliding = afterSlide.position;
+                }
+
+                db.collection('days').insertOne({
+                    climb: day.Snail._id,
+                    day: day.day,
+                    initialHeight: initialHeight,
+                    distanceClimbed: distanceClimbed,
+                    heightAfterClimbing: heightAfterClimbing,
+                    heightAfterSliding: heightAfterSliding,
+                    result: day.result
+                });
+
+            });
+
+        });
+
+        return results;
+
+    }).catch((err)=>{
+        console.log(err);
+        throw err;
+    });
+
+}
+
+function findAllClimbs(){
+
+    return Mongo.connect().then((db) => {
+        return db.collection('climbs').find({});
+    });
+
+}
+
+function findAllMovesByClimb(climbId){
+
+    return Mongo.connect().then((db) => {
+        return db.collection('days').find({ climb : new Mongo.ObjectId(climbId) });
+    });
+
+}
+
 module.exports = {
-    init: init
+    init: init,
+    log: log,
+    findAllClimbs: findAllClimbs,
+    findAllMovesByClimb: findAllMovesByClimb
 };

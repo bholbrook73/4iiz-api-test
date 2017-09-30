@@ -2,23 +2,27 @@
 
 let Climb = require('../helpers/climb');
 
-module.exports = {
-    getClimbs: get,
-    newClimb: post
-};
-
 function get(req, res) {
 
-    res.json();
+    Climb.findAllClimbs().then(result=>{
+        result.toArray(function(err, arrResult){
+            res.json(arrResult);
+        });
+    });
 
 }
 
 function post(req, res){
 
 
-    //let response = Climb.init( req.body.h, req.body.u, req.body.d, req.body.f );
-
-    //res.json(response);
-    res.json();
+    let days = Climb.init( req.body.h, req.body.u, req.body.d, req.body.f );
+    Climb.log(days).then(results=>{
+        res.json(results.climb);
+    });
 
 }
+
+module.exports = {
+    getClimbs: get,
+    newClimb: post
+};

@@ -1,10 +1,10 @@
 'use strict';
 
 const PORT = process.env.PORT || 10010;
-
 const SwaggerExpress = require('swagger-express-mw');
 const SwaggerUi = require('swagger-tools/middleware/swagger-ui');
 const app = require('express')();
+const Mongo = require('./api/helpers/mongo');
 
 let config = {
   appRoot: __dirname // required config
@@ -23,13 +23,44 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
     // install middleware
     swaggerExpress.register(app);
 
-    // add listener
-    app.listen(PORT);
+    // make default destination the docs
+    app.get('/', (req,res)=>{
+        res.redirect('/docs/#/default');
+    });
 
-    if (swaggerExpress.runner.swagger.paths['/hello']) {
-        console.log(`\nSwagger Express App Running on http://127.0.0.1:${PORT}/`);
-    }
+    start();
+
 });
+
+function start()
+{
+    Mongo.connect().then(db=>{
+
+        console.log("Mongo Connection Successful");
+
+        Promise.all([
+
+            db.createCollection("days"),
+            db.createCollection("climbs")
+
+        ]).then(()=>{
+
+            app.listen(PORT);
+            console.log(`Listening on Port ${PORT}`);
+
+        });
+
+    }).catch(err=>{
+
+        console.log("Database Not Ready for Connection, Waiting...");
+        console.warn(err.message);
+        setTimeout(start, 400);
+
+    });
+
+
+}
+
 
 // for testing
 module.exports = app;
